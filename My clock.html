@@ -1,0 +1,171 @@
+<html>
+<head>
+<title>Clock</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background-color: white;
+        color: black;
+        transition: all 0.3s ease;
+    }
+    canvas {
+        border: 1px solid #d3d3d3;
+        background-color: white;
+    }
+    .dark-mode {
+        background-color: #121212;
+        color: white;
+    }
+    .dark-mode canvas {
+        background-color: #121212;
+    }
+    button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 20px;
+        cursor: pointer;
+    }
+</style>
+<script>
+var canvas;
+var graphics;
+var darkMode = false;
+var vk = 50;
+
+function line(x1, y1, x2, y2){
+    graphics.beginPath();
+    graphics.moveTo(x1, y1);
+    graphics.lineTo(x2, y2);
+    graphics.strokeStyle = darkMode ? "#ffffff" : "#000000";
+    graphics.stroke();
+}
+
+function line2(x1, y1, x2, y2){
+    graphics.beginPath();
+    graphics.moveTo(x1, y1);
+    graphics.lineTo(x2, y2);
+    graphics.strokeStyle = "#ff0000";
+    graphics.stroke();
+}
+
+function tics(x, y, thetax, thetay){
+    let n = x.length;
+    let step = Math.ceil(n / 60);
+    let count = 0;
+    for (let i = 0; i < n; i = i + step){
+        let r = 230;
+        if (count % 5 == 0){
+            r = 200;
+        }
+        x2 = r * thetax[i] + 300;
+        y2 = r * thetay[i] + 300;
+        line(x[i], y[i], x2, y2);
+        count++;
+    }
+}
+
+function currentTime(h, m, s) {
+    let r1 = 120;
+    let th = ((h % 12) + m / 60 + s / 3600) / 12; 
+    line(300, 300,
+         r1 * Math.cos(th * 2 * Math.PI - Math.PI / 2) + 300,
+         r1 * Math.sin(th * 2 * Math.PI - Math.PI / 2) + 300);
+
+    let r2 = 180;
+    let tm = (m + s / 60) / 60; 
+    line(300, 300,
+        r2 * Math.cos(tm * 2 * Math.PI - Math.PI / 2) + 300,
+        r2 * Math.sin(tm * 2 * Math.PI - Math.PI / 2) + 300);
+
+    let r3 = 240;
+    let ts = s / 60; 
+    line2(300, 300,
+        r3 * Math.cos(ts * 2 * Math.PI - Math.PI / 2) + 300,
+        r3 * Math.sin(ts * 2 * Math.PI - Math.PI / 2) + 300);
+}
+
+function drawDigitalTime(h, m, s) {
+    let timeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    
+    graphics.font = "bold 28px Arial";
+    graphics.fillStyle = darkMode ? "#00FF7F" : "#000000"; 
+    graphics.textAlign = "center";
+    graphics.textBaseline = "middle";
+    graphics.fillText(timeStr, 300, 300); 
+}
+
+function drawDate(d) {
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    let dayName = days[d.getDay()];
+    let dateStr = `${dayName}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    
+    graphics.font = "16px Arial";
+    graphics.fillStyle = darkMode ? "#87CEFA" : "#333333"; 
+    graphics.textAlign = "right";
+    graphics.textBaseline = "bottom";
+    graphics.fillText(dateStr, 590, 590); 
+}
+
+function init(){
+    canvas = document.getElementById("myCanvas");
+    graphics = canvas.getContext("2d");
+    
+    let d = new Date();
+    
+    graphics.clearRect(0, 0, canvas.width, canvas.height);
+    
+    let x = [], y = [], thetax = [], thetay = [];
+    let r = 240;
+    let c = 300;
+    
+    for (let j = 0; j <= 2 * Math.PI; j += 0.00001){
+        x.push(r * Math.cos(j) + c);
+        thetax.push(Math.cos(j));
+        y.push(r * Math.sin(j) + c);
+        thetay.push(Math.sin(j));
+    }
+    
+    graphics.fillStyle = darkMode ? "#ffffff" : "#000000"; 
+    for (let i = 0; i < x.length; i++){
+        graphics.fillRect(x[i], y[i], 1, 1);
+    }
+
+    for (let i = 0; i < x.length - 1; i++){
+        line(x[i], y[i], x[i + 1], y[i + 1]);
+    }
+
+    tics(x, y, thetax, thetay);
+
+    let h = d.getHours();
+    let m = d.getMinutes();
+    let s = d.getSeconds();
+    
+    currentTime(h, m, s);
+    drawDigitalTime(h, m, s);
+    drawDate(d); 
+}
+
+function toggleDarkMode(){
+    darkMode = !darkMode; 
+    document.body.classList.toggle("dark-mode", darkMode);
+    document.getElementById("button").innerText = darkMode ? "Light Mode" : "Dark Mode";
+}
+
+window.onload = function() {
+    setInterval(init, 1000);
+}
+</script>
+</head>
+<body>
+<h1>My Clock</h1>
+<canvas id="myCanvas" width="600" height="600"></canvas>
+
+<div>
+    <button id="button" onclick="toggleDarkMode()">Dark Mode</button>
+</div>
+</body>
+</html>
